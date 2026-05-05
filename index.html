@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Multi Stream</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body { background:#111; color:white; font-family:Arial; margin:0; height:100vh; display:flex; flex-direction:column; }
+    .top-bar { padding:10px; text-align:center; }
+    input { padding:10px; width:60%; }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; flex:1; padding:6px; }
+    .card { background:#1c1c1c; position:relative; }
+    iframe { width:100%; height:100%; border:none; }
+    .controls { position:absolute; top:5px; right:5px; }
+    .controls button { background:red; color:white; border:none; }
+    .footer { text-align:center; padding:8px; color:#00e676; }
+  </style>
+</head>
+
+<body>
+
+<div class="top-bar">
+  <h2>🔥 Multi Stream (9 max)</h2>
+  <input id="link" placeholder="Paste YouTube link">
+  <button onclick="addStream()">Add</button>
+  <h3>🟢 Online: <span id="viewerCount">0</span></h3>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="footer">Developed by Amal Joshy</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBTPrDoxWQdEWLLHsUuJbv4cQX1vUd6lQY",
+  authDomain: "multi-stream-ddb1d.firebaseapp.com",
+  databaseURL: "https://multi-stream-ddb1d-default-rtdb.firebaseio.com",
+  projectId: "multi-stream-ddb1d",
+  appId: "1:305282777189:web:50adf19c4bbb1c8005c68c"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// 👤 user tracking
+let userId = sessionStorage.getItem("userId");
+if (!userId) {
+  userId = Math.random().toString(36).substring(2);
+  sessionStorage.setItem("userId", userId);
+}
+
+const userRef = db.ref("users/" + userId);
+userRef.set(true);
+userRef.onDisconnect().remove();
+
+// 🟢 viewer count
+db.ref("users").on("value", snap => {
+  document.getElementById("viewerCount").innerText = snap.numChildren();
+});
+
+// 🎥 load streams
+db.ref("streams").on("value", snap => {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  snap.forEach(child => createPlayer(child.val(), child.key));
+});
+
+// ➕ add stream
+function addStream() {
+  let url = document.getElementById("link").value;
+  let id = getId(url);
+
+  if (!id) {
+    alert("Invalid link");
+    return;
+  }
+
+  db.ref("streams").once("value", snap => {
+    if (snap.numChildren() >= 9) {
+      alert("Max 9 streams");
+      return;
+    }
+    db.ref("streams").push(id);
+    document.getElementById("link").value = "";
+  });
+}
+
+// 🎬 create player
+function createPlayer(id, key) {
+  const grid = document.getElementById("grid");
+
+  let div = document.createElement("div");
+  div.className = "card";
+
+  let iframe = document.createElement("iframe");
+  iframe.src = "https://www.youtube.com/embed/" + id + "?autoplay=1&mute=1";
+
+  div.appendChild(iframe);
+
+  let btn = document.createElement("button");
+  btn.innerText = "X";
+  btn.onclick = () => db.ref("streams/" + key).remove();
+
+  let controls = document.createElement("div");
+  controls.className = "controls";
+  controls.appendChild(btn);
+
+  div.appendChild(controls);
+  grid.appendChild(div);
+}
+
+// 🔗 extract ID
+function getId(url) {
+  let r = /(?:youtube\.com.*v=|youtu\.be\/|live\/)([^&#]+)/;
+  let m = url.match(r);
+  return m ? m[1] : null;
+}
+</script>
+
+</body>
+</html>
