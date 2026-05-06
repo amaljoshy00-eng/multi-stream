@@ -143,22 +143,6 @@
       width:75px;
     }
 
-    /* 📺 TITLE */
-    .stream-title{
-      position:absolute;
-      top:0;
-      left:0;
-      right:0;
-      background:rgba(0,0,0,0.6);
-      padding:6px 10px;
-      z-index:999;
-      font-size:14px;
-      font-weight:bold;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
     /* ⭐ FAVORITE */
     .favorite{
       background:gold !important;
@@ -423,16 +407,6 @@ function createPlayer(id,key){
   div.className = "card";
 
 
-  // 📺 TITLE
-  let title = document.createElement("div");
-
-  title.className = "stream-title";
-
-  title.innerText = "YouTube Live Stream";
-
-  div.appendChild(title);
-
-
   // PLAYER
   let playerDiv = document.createElement("div");
 
@@ -518,32 +492,46 @@ function createPlayer(id,key){
 
   favBtn.innerText = "⭐";
 
-  let favs =
-    JSON.parse(localStorage.getItem("favorites") || "[]");
+  function updateFavoriteUI(){
 
-  if(favs.includes(id)){
+    let favs =
+      JSON.parse(localStorage.getItem("favorites") || "[]");
 
-    favBtn.classList.add("favorite");
+    if(favs.includes(id)){
+
+      favBtn.classList.add("favorite");
+
+    }else{
+
+      favBtn.classList.remove("favorite");
+
+    }
 
   }
+
+  updateFavoriteUI();
 
   favBtn.onclick = () => {
 
     let favs =
       JSON.parse(localStorage.getItem("favorites") || "[]");
 
-    if(!favs.includes(id)){
+    if(favs.includes(id)){
+
+      favs = favs.filter(f => f !== id);
+
+    }else{
 
       favs.push(id);
 
-      localStorage.setItem(
-        "favorites",
-        JSON.stringify(favs)
-      );
-
-      favBtn.classList.add("favorite");
-
     }
+
+    localStorage.setItem(
+      "favorites",
+      JSON.stringify(favs)
+    );
+
+    updateFavoriteUI();
 
   };
 
