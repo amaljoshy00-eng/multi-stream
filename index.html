@@ -43,10 +43,6 @@
       background:#000;
     }
 
-    .top-bar h2{
-      margin-top:5px;
-    }
-
     input{
       padding:10px;
       width:60%;
@@ -60,7 +56,7 @@
       cursor:pointer;
     }
 
-    /* 🔥 GLOBAL CONTROLS */
+    /* 🎛 GLOBAL CONTROLS */
     .top-controls{
       position:fixed;
       top:10px;
@@ -68,6 +64,7 @@
       z-index:999999;
       display:flex;
       gap:5px;
+      flex-wrap:wrap;
     }
 
     .top-controls button{
@@ -113,7 +110,7 @@
       border:none;
     }
 
-    /* 🎛 CONTROLS */
+    /* 🎛 CARD CONTROLS */
     .controls{
       position:absolute;
       top:45px;
@@ -198,7 +195,7 @@
 
 <div class="top-bar">
 
-  <h2>🔥 Multi Stream (9 max)</h2>
+  <h2>🔥 Advanced Multi Stream</h2>
 
   <input id="link" placeholder="Paste YouTube link">
 
@@ -208,14 +205,20 @@
 
 </div>
 
-<!-- 🎛 GLOBAL -->
+<!-- 🎛 GLOBAL CONTROLS -->
 <div class="top-controls">
 
-  <button onclick="playAll()">▶ Play</button>
+  <button onclick="playAll()">▶</button>
 
-  <button onclick="pauseAll()">⏸ Pause</button>
+  <button onclick="pauseAll()">⏸</button>
 
   <button onclick="toggleTheme()">🌙</button>
+
+  <button onclick="setGrid(1)">1️⃣</button>
+
+  <button onclick="setGrid(2)">2️⃣</button>
+
+  <button onclick="setGrid(3)">3️⃣</button>
 
 </div>
 
@@ -317,7 +320,11 @@ db.ref("streams").on("value", snap => {
 
   grid.innerHTML = "";
 
-  updateGrid(snap.numChildren());
+  if(!manualGridEnabled){
+
+    updateGrid(snap.numChildren());
+
+  }
 
   snap.forEach(child => {
 
@@ -633,52 +640,55 @@ function toggleTheme(){
 }
 
 
-// 🔥 SMART GRID
+// 🔥 AUTO SMART GRID
 function updateGrid(count){
 
   const grid = document.getElementById("grid");
 
-  // 1 stream
   if(count === 1){
 
     grid.style.gridTemplateColumns = "1fr";
 
   }
 
-  // 2 streams
   else if(count === 2){
 
     grid.style.gridTemplateColumns = "repeat(2,1fr)";
 
   }
 
-  // 3 streams
   else if(count === 3){
 
     grid.style.gridTemplateColumns = "repeat(3,1fr)";
 
   }
 
-  // 4 streams
   else if(count === 4){
 
     grid.style.gridTemplateColumns = "repeat(2,1fr)";
 
   }
 
-  // 5 or 6
-  else if(count <= 6){
-
-    grid.style.gridTemplateColumns = "repeat(3,1fr)";
-
-  }
-
-  // 7,8,9
   else{
 
     grid.style.gridTemplateColumns = "repeat(3,1fr)";
 
   }
+
+}
+
+
+// 🎛 MANUAL GRID
+let manualGridEnabled = false;
+
+function setGrid(cols){
+
+  manualGridEnabled = true;
+
+  const grid = document.getElementById("grid");
+
+  grid.style.gridTemplateColumns =
+    `repeat(${cols},1fr)`;
 
 }
 
