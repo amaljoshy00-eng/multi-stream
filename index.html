@@ -58,11 +58,13 @@
 
     /* 🎛 GLOBAL CONTROLS */
     .top-controls{
+      position:fixed;
+      top:10px;
+      right:10px;
+      z-index:999999;
       display:flex;
-      justify-content:center;
       gap:10px;
       flex-wrap:wrap;
-      padding:10px;
     }
 
     .top-controls button{
@@ -74,15 +76,19 @@
       font-weight:bold;
     }
 
-    /* 🔥 GRID SELECTOR */
-    .grid-selector{
+    /* 🔥 MENUS */
+    .menu-panel{
+      position:fixed;
+      top:60px;
+      right:10px;
+      z-index:999999;
       display:flex;
       flex-direction:column;
-      align-items:center;
-      padding-bottom:10px;
+      align-items:flex-end;
+      gap:10px;
     }
 
-    .grid-selector button{
+    .menu-panel button{
       background:#222;
       color:white;
       border:none;
@@ -91,15 +97,15 @@
       font-weight:bold;
     }
 
-    .grid-menu{
+    .dropdown-menu{
       display:none;
-      margin-top:10px;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:center;
+      flex-direction:column;
+      gap:8px;
+      margin-top:5px;
+      align-items:flex-end;
     }
 
-    .grid-menu button{
+    .dropdown-menu button{
       background:#444;
     }
 
@@ -137,7 +143,7 @@
       border:none;
     }
 
-    /* 🎛 CARD CONTROLS */
+    /* 🎛 STREAM CONTROLS */
     .controls{
       position:absolute;
       top:45px;
@@ -207,6 +213,16 @@
         bottom:5px;
       }
 
+      .top-controls{
+        top:10px;
+        right:10px;
+      }
+
+      .menu-panel{
+        top:60px;
+        right:10px;
+      }
+
     }
 
   </style>
@@ -233,18 +249,23 @@
 
   <button onclick="pauseAll()">⏸ Pause</button>
 
+  <button onclick="muteAll()">🔇 Mute</button>
+
+  <button onclick="unmuteAll()">🔊 Unmute</button>
+
   <button onclick="toggleTheme()">🌙 Theme</button>
 
 </div>
 
-<!-- 🔥 GRID SELECTOR -->
-<div class="grid-selector">
+<!-- 🔥 MENUS -->
+<div class="menu-panel">
 
+  <!-- GRID -->
   <button onclick="toggleGridMenu()">
     🟦 Grid
   </button>
 
-  <div id="gridMenu" class="grid-menu">
+  <div id="gridMenu" class="dropdown-menu">
 
     <button onclick="setGridMode(1)">
       1×1
@@ -260,6 +281,39 @@
 
     <button onclick="enableAutoGrid()">
       Auto
+    </button>
+
+  </div>
+
+  <!-- SETTINGS -->
+  <button onclick="toggleSettingsMenu()">
+    ⚙ Settings
+  </button>
+
+  <div id="settingsMenu" class="dropdown-menu">
+
+    <button onclick="setGlobalQuality('default')">
+      Auto Quality
+    </button>
+
+    <button onclick="setGlobalQuality('small')">
+      144p
+    </button>
+
+    <button onclick="setGlobalQuality('medium')">
+      360p
+    </button>
+
+    <button onclick="setGlobalQuality('large')">
+      480p
+    </button>
+
+    <button onclick="setGlobalQuality('hd720')">
+      720p
+    </button>
+
+    <button onclick="setGlobalQuality('hd1080')">
+      1080p
     </button>
 
   </div>
@@ -684,10 +738,80 @@ function pauseAll(){
 }
 
 
+// 🔇 MUTE ALL
+function muteAll(){
+
+  Object.values(players).forEach(player => {
+
+    try{
+
+      player.mute();
+
+    }catch(err){}
+
+  });
+
+}
+
+
+// 🔊 UNMUTE ALL
+function unmuteAll(){
+
+  Object.values(players).forEach(player => {
+
+    try{
+
+      player.unMute();
+
+    }catch(err){}
+
+  });
+
+}
+
+
 // 🌙 THEME
 function toggleTheme(){
 
   document.body.classList.toggle("light");
+
+}
+
+
+// 🎛 GRID MENU
+function toggleGridMenu(){
+
+  const menu =
+    document.getElementById("gridMenu");
+
+  if(menu.style.display === "flex"){
+
+    menu.style.display = "none";
+
+  }else{
+
+    menu.style.display = "flex";
+
+  }
+
+}
+
+
+// ⚙ SETTINGS MENU
+function toggleSettingsMenu(){
+
+  const menu =
+    document.getElementById("settingsMenu");
+
+  if(menu.style.display === "flex"){
+
+    menu.style.display = "none";
+
+  }else{
+
+    menu.style.display = "flex";
+
+  }
 
 }
 
@@ -724,25 +848,6 @@ function updateGrid(count){
   else{
 
     grid.style.gridTemplateColumns = "repeat(3,1fr)";
-
-  }
-
-}
-
-
-// 🎛 GRID MENU
-function toggleGridMenu(){
-
-  const menu =
-    document.getElementById("gridMenu");
-
-  if(menu.style.display === "flex"){
-
-    menu.style.display = "none";
-
-  }else{
-
-    menu.style.display = "flex";
 
   }
 
@@ -817,6 +922,22 @@ function applyVisibility(){
       card.style.display = "none";
 
     }
+
+  });
+
+}
+
+
+// ⚙ GLOBAL QUALITY
+function setGlobalQuality(quality){
+
+  Object.values(players).forEach(player => {
+
+    try{
+
+      player.setPlaybackQuality(quality);
+
+    }catch(err){}
 
   });
 
