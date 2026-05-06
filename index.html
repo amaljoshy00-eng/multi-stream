@@ -57,10 +57,10 @@
 
     /* 🎛 GLOBAL BUTTONS */
     .top-controls{
-      position:fixed !important;
-      top:15px !important;
-      right:15px !important;
-      z-index:9999999 !important;
+      position:fixed;
+      top:15px;
+      right:15px;
+      z-index:9999999;
 
       display:flex;
       gap:10px;
@@ -78,14 +78,17 @@
 
     /* 🔥 RIGHT PANEL */
     .menu-panel{
-      position:fixed !important;
-      top:70px !important;
-      right:15px !important;
-      z-index:9999999 !important;
+      position:fixed;
+      top:70px;
+      right:15px;
+      z-index:9999999;
 
       display:flex;
-      flex-direction:column;
-      align-items:flex-end;
+
+      flex-direction:row;
+
+      align-items:flex-start;
+
       gap:10px;
     }
 
@@ -102,11 +105,13 @@
       display:none;
       flex-direction:column;
       gap:8px;
-      align-items:flex-end;
+      margin-top:5px;
+      align-items:flex-start;
     }
 
     .dropdown-menu button{
       background:#444;
+      width:100%;
     }
 
     /* 🎥 GRID */
@@ -193,15 +198,15 @@
       }
 
       .top-controls{
-        top:auto !important;
-        bottom:15px !important;
-        right:10px !important;
+        top:auto;
+        bottom:15px;
+        right:10px;
       }
 
       .menu-panel{
-        top:auto !important;
-        bottom:70px !important;
-        right:10px !important;
+        top:auto;
+        bottom:70px;
+        right:10px;
       }
 
       .controls{
@@ -234,76 +239,95 @@
 <!-- 🎛 GLOBAL -->
 <div class="top-controls">
 
-  <button onclick="playAll()">▶ Play</button>
+  <button onclick="playAll()">
+    ▶ Play
+  </button>
 
-  <button onclick="pauseAll()">⏸ Pause</button>
+  <button onclick="pauseAll()">
+    ⏸ Pause
+  </button>
 
-  <button onclick="muteAll()">🔇 Mute</button>
+  <button onclick="muteAll()">
+    🔇 Mute
+  </button>
 
-  <button onclick="unmuteAll()">🔊 Unmute</button>
+  <button onclick="unmuteAll()">
+    🔊 Unmute
+  </button>
 
-  <button onclick="toggleTheme()">🌙 Theme</button>
+  <button onclick="toggleTheme()">
+    🌙 Theme
+  </button>
 
 </div>
 
 <!-- 🔥 SIDE PANEL -->
 <div class="menu-panel">
 
-  <!-- GRID -->
-  <button onclick="toggleGridMenu()">
-    🟦 Grid
-  </button>
+  <!-- 🟦 GRID -->
+  <div>
 
-  <div id="gridMenu" class="dropdown-menu">
-
-    <button onclick="setGridMode(1)">
-      1×1
+    <button onclick="toggleGridMenu()">
+      🟦 Grid
     </button>
 
-    <button onclick="setGridMode(4)">
-      2×2
-    </button>
+    <div id="gridMenu" class="dropdown-menu">
 
-    <button onclick="setGridMode(9)">
-      3×3
-    </button>
+      <button onclick="setGridMode(1)">
+        1×1
+      </button>
 
-    <button onclick="enableAutoGrid()">
-      Auto
-    </button>
+      <button onclick="setGridMode(4)">
+        2×2
+      </button>
+
+      <button onclick="setGridMode(9)">
+        3×3
+      </button>
+
+      <button onclick="enableAutoGrid()">
+        Auto
+      </button>
+
+    </div>
 
   </div>
 
-  <!-- SETTINGS -->
-  <button onclick="toggleSettingsMenu()">
-    ⚙ Settings
-  </button>
 
-  <div id="settingsMenu" class="dropdown-menu">
+  <!-- ⚙ SETTINGS -->
+  <div>
 
-    <button onclick="setGlobalQuality('default')">
-      Auto Quality
+    <button onclick="toggleSettingsMenu()">
+      ⚙ Settings
     </button>
 
-    <button onclick="setGlobalQuality('small')">
-      144p
-    </button>
+    <div id="settingsMenu" class="dropdown-menu">
 
-    <button onclick="setGlobalQuality('medium')">
-      360p
-    </button>
+      <button onclick="setGlobalQuality('default')">
+        Auto Quality
+      </button>
 
-    <button onclick="setGlobalQuality('large')">
-      480p
-    </button>
+      <button onclick="setGlobalQuality('small')">
+        144p
+      </button>
 
-    <button onclick="setGlobalQuality('hd720')">
-      720p
-    </button>
+      <button onclick="setGlobalQuality('medium')">
+        360p
+      </button>
 
-    <button onclick="setGlobalQuality('hd1080')">
-      1080p
-    </button>
+      <button onclick="setGlobalQuality('large')">
+        480p
+      </button>
+
+      <button onclick="setGlobalQuality('hd720')">
+        720p
+      </button>
+
+      <button onclick="setGlobalQuality('hd1080')">
+        1080p
+      </button>
+
+    </div>
 
   </div>
 
