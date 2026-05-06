@@ -58,21 +58,37 @@
 
     /* 🎛 GLOBAL CONTROLS */
     .top-controls{
-      position:fixed;
-      top:10px;
-      right:10px;
-      z-index:999999;
       display:flex;
-      gap:5px;
+      justify-content:center;
+      gap:10px;
       flex-wrap:wrap;
+      padding:10px;
     }
 
     .top-controls button{
       background:red;
       color:white;
       border:none;
-      padding:8px 12px;
-      border-radius:5px;
+      padding:8px 14px;
+      border-radius:6px;
+      font-weight:bold;
+    }
+
+    /* 🔥 GRID SELECTOR */
+    .grid-selector{
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      padding-bottom:10px;
+    }
+
+    .grid-selector button{
+      background:#222;
+      color:white;
+      border:none;
+      padding:8px 14px;
+      border-radius:6px;
       font-weight:bold;
     }
 
@@ -175,12 +191,6 @@
         width:90%;
       }
 
-      .top-controls{
-        top:auto;
-        bottom:10px;
-        right:10px;
-      }
-
       .controls{
         top:auto;
         bottom:5px;
@@ -208,17 +218,24 @@
 <!-- 🎛 GLOBAL CONTROLS -->
 <div class="top-controls">
 
-  <button onclick="playAll()">▶</button>
+  <button onclick="playAll()">▶ Play</button>
 
-  <button onclick="pauseAll()">⏸</button>
+  <button onclick="pauseAll()">⏸ Pause</button>
 
-  <button onclick="toggleTheme()">🌙</button>
+  <button onclick="toggleTheme()">🌙 Theme</button>
 
-  <button onclick="setGrid(1)">1️⃣</button>
+</div>
 
-  <button onclick="setGrid(2)">2️⃣</button>
+<!-- 🔥 GRID SELECTOR -->
+<div class="grid-selector">
 
-  <button onclick="setGrid(3)">3️⃣</button>
+  <button onclick="setGrid(1)">1 Column</button>
+
+  <button onclick="setGrid(2)">2 Column</button>
+
+  <button onclick="setGrid(3)">3 Column</button>
+
+  <button onclick="enableAutoGrid()">Auto Grid</button>
 
 </div>
 
@@ -272,6 +289,10 @@ function onYouTubeIframeAPIReady(){
 
 // 🎥 PLAYERS
 let players = {};
+
+
+// 🎛 GRID MODE
+let manualGridEnabled = false;
 
 
 // 👤 ONLINE USERS
@@ -679,8 +700,6 @@ function updateGrid(count){
 
 
 // 🎛 MANUAL GRID
-let manualGridEnabled = false;
-
 function setGrid(cols){
 
   manualGridEnabled = true;
@@ -689,6 +708,18 @@ function setGrid(cols){
 
   grid.style.gridTemplateColumns =
     `repeat(${cols},1fr)`;
+
+}
+
+
+// 🔄 ENABLE AUTO GRID
+function enableAutoGrid(){
+
+  manualGridEnabled = false;
+
+  updateGrid(
+    document.getElementById("grid").children.length
+  );
 
 }
 
