@@ -25,13 +25,14 @@
       width:60%;
       border:none;
       border-radius:5px;
+      outline:none;
     }
 
     button{
       cursor:pointer;
     }
 
-    /* 🔥 GLOBAL CONTROLS */
+    /* 🔥 GLOBAL PLAY/PAUSE */
     .top-controls{
       position:fixed;
       top:10px;
@@ -63,8 +64,16 @@
       background:#1c1c1c;
       position:relative;
       overflow:hidden;
+      min-height:200px;
     }
 
+    iframe{
+      width:100%;
+      height:100%;
+      border:none;
+    }
+
+    /* ❌ DELETE BUTTON */
     .controls{
       position:absolute;
       top:5px;
@@ -81,12 +90,7 @@
       font-size:12px;
     }
 
-    iframe{
-      width:100%;
-      height:100%;
-      border:none;
-    }
-
+    /* FOOTER */
     .footer{
       text-align:center;
       padding:8px;
@@ -95,6 +99,7 @@
       font-size:12px;
     }
 
+    /* 📱 MOBILE */
     @media(max-width:900px){
       .grid{
         grid-template-columns:repeat(2,1fr);
@@ -102,12 +107,19 @@
     }
 
     @media(max-width:600px){
+
       .grid{
         grid-template-columns:1fr;
       }
 
       input{
         width:90%;
+      }
+
+      .top-controls{
+        top:auto;
+        bottom:10px;
+        right:10px;
       }
     }
   </style>
@@ -116,99 +128,157 @@
 <body>
 
 <div class="top-bar">
+
   <h2>🔥 Multi Stream (9 max)</h2>
 
   <input id="link" placeholder="Paste YouTube link">
+
   <button onclick="addStream()">Add</button>
 
   <h3>🟢 Online: <span id="viewerCount">0</span></h3>
+
 </div>
 
-<!-- 🔥 GLOBAL PLAY/PAUSE -->
+<!-- 🔥 GLOBAL CONTROLS -->
 <div class="top-controls">
-  <button onclick="playAll()">▶ Play All</button>
-  <button onclick="pauseAll()">⏸ Pause All</button>
+
+  <button onclick="playAll()">▶ Play</button>
+
+  <button onclick="pauseAll()">⏸ Pause</button>
+
 </div>
 
+<!-- 🎥 STREAM GRID -->
 <div class="grid" id="grid"></div>
 
 <div class="footer">
   Developed by Amal Joshy
 </div>
 
-<!-- 🔥 Firebase -->
+<!-- 🔥 FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-<!-- 🔥 YouTube API -->
-<script src="https://www.youtube.com/iframe_api"></script>
-
 <script>
+
 const firebaseConfig = {
+
   apiKey: "AIzaSyBTPrDoxWQdEWLLHsUuJbv4cQX1vUd6lQY",
+
   authDomain: "multi-stream-ddb1d.firebaseapp.com",
+
   databaseURL: "https://multi-stream-ddb1d-default-rtdb.firebaseio.com",
+
   projectId: "multi-stream-ddb1d",
+
   appId: "1:305282777189:web:50adf19c4bbb1c8005c68c"
+
 };
 
 firebase.initializeApp(firebaseConfig);
+
 const db = firebase.database();
 
-// 🔥 YOUTUBE PLAYERS
-let players = {};
 
 // 👤 REAL ONLINE USER TRACKING
 const userId = Math.random().toString(36).substring(2);
+
 const userRef = db.ref("users/" + userId);
 
 db.ref(".info/connected").on("value", snap => {
+
   if (snap.val() === true) {
+
     userRef.set(true);
+
     userRef.onDisconnect().remove();
+
   }
+
 });
+
 
 // 🟢 ONLINE COUNT
 db.ref("users").on("value", snap => {
-  document.getElementById("viewerCount").innerText = snap.numChildren();
+
+  document.getElementById("viewerCount").innerText =
+    snap.numChildren();
+
 });
+
 
 // 🎥 LOAD STREAMS
 db.ref("streams").on("value", snap => {
+
   const grid = document.getElementById("grid");
 
   grid.innerHTML = "";
-  players = {};
 
   snap.forEach(child => {
+
     createPlayer(child.val(), child.key);
+
   });
+
 });
+
 
 // ➕ ADD STREAM
 function addStream() {
 
   let url = document.getElementById("link").value.trim();
+
   let id = getId(url);
 
   if (!id) {
+
     alert("Invalid YouTube link");
+
     return;
+
   }
 
   db.ref("streams").once("value", snap => {
 
+    // 🔥 LIMIT 9
     if (snap.numChildren() >= 9) {
+
       alert("Maximum 9 streams allowed");
+
       return;
+
+    }
+
+    // 🔥 PREVENT DUPLICATES
+    let exists = false;
+
+    snap.forEach(child => {
+
+      if (child.val() === id) {
+
+        exists = true;
+
+      }
+
+    });
+
+    if (exists) {
+
+      alert("Stream already added");
+
+      return;
+
     }
 
     db.ref("streams").push(id);
 
     document.getElementById("link").value = "";
+
   });
+
 }
+
 
 // 🎬 CREATE PLAYER
 function createPlayer(id, key) {
@@ -216,23 +286,36 @@ function createPlayer(id, key) {
   const grid = document.getElementById("grid");
 
   let div = document.createElement("div");
+
   div.className = "card";
 
-  // player container
-  let playerDiv = document.createElement("div");
-  playerDiv.id = "player-" + key;
 
-  div.appendChild(playerDiv);
+  // 🔥 IFRAME
+  let iframe = document.createElement("iframe");
 
-  // ❌ delete button
+  iframe.src =
+    "https://www.youtube.com/embed/" +
+    id +
+    "?enablejsapi=1&autoplay=1&mute=1&playsinline=1";
+
+  iframe.allow = "autoplay";
+
+  div.appendChild(iframe);
+
+
+  // ❌ DELETE BUTTON
   let controls = document.createElement("div");
+
   controls.className = "controls";
 
   let btn = document.createElement("button");
+
   btn.innerText = "X";
 
   btn.onclick = () => {
+
     db.ref("streams/" + key).remove();
+
   };
 
   controls.appendChild(btn);
@@ -241,53 +324,51 @@ function createPlayer(id, key) {
 
   grid.appendChild(div);
 
-  // 🔥 REAL YOUTUBE PLAYER
-  players[key] = new YT.Player("player-" + key, {
-    height: "100%",
-    width: "100%",
-    videoId: id,
-
-    playerVars: {
-      autoplay: 1,
-      mute: 1,
-      playsinline: 1
-    }
-  });
 }
+
 
 // ▶ PLAY ALL
 function playAll() {
 
-  Object.values(players).forEach(player => {
+  document.querySelectorAll("iframe").forEach(frame => {
 
-    if (player.playVideo) {
-      player.playVideo();
-    }
+    frame.contentWindow.postMessage(
+      '{"event":"command","func":"playVideo","args":""}',
+      '*'
+    );
 
   });
+
 }
+
 
 // ⏸ PAUSE ALL
 function pauseAll() {
 
-  Object.values(players).forEach(player => {
+  document.querySelectorAll("iframe").forEach(frame => {
 
-    if (player.pauseVideo) {
-      player.pauseVideo();
-    }
+    frame.contentWindow.postMessage(
+      '{"event":"command","func":"pauseVideo","args":""}',
+      '*'
+    );
 
   });
+
 }
+
 
 // 🔗 EXTRACT YOUTUBE ID
 function getId(url) {
 
-  let r = /(?:youtube\.com.*v=|youtu\.be\/|live\/)([^&#]+)/;
+  let r =
+    /(?:youtube\.com.*v=|youtu\.be\/|live\/)([^&#]+)/;
 
   let m = url.match(r);
 
   return m ? m[1] : null;
+
 }
+
 </script>
 
 </body>
