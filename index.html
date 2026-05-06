@@ -840,7 +840,11 @@ function applyVisibility(){
 
 }
 
-/* ⚙ QUALITY */
+<!-- REPLACE ONLY THIS SECTION IN YOUR FULL CODE -->
+
+<script>
+
+/* ⚙ GLOBAL QUALITY */
 
 function setGlobalQuality(quality){
 
@@ -848,14 +852,29 @@ function setGlobalQuality(quality){
 
     try{
 
+      /* 🔥 FORCE QUALITY RANGE */
+      player.setPlaybackQualityRange(
+        quality,
+        quality
+      );
+
+      /* 🔥 SET QUALITY */
       player.setPlaybackQuality(quality);
 
-    }catch(err){}
+      /* ▶ KEEP PLAYING */
+      player.playVideo();
+
+    }catch(err){
+
+      console.log(err);
+
+    }
 
   });
 
 }
 
+</script>
 /* 🔗 GET ID */
 
 function getId(url){
