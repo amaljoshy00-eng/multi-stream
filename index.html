@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Multi Stream</title>
+  <title>Advanced Multi Stream</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -10,21 +10,41 @@
     body{
       background:#111;
       color:white;
-      font-family:Arial;
+      font-family:Arial,sans-serif;
       margin:0;
       height:100vh;
       display:flex;
       flex-direction:column;
+      transition:0.3s;
     }
 
+    /* 🌙 LIGHT MODE */
     .light{
-      background:white;
-      color:black;
+      background:#f5f5f5;
+      color:#111;
+    }
+
+    .light .card{
+      background:#ffffff;
+    }
+
+    .light .top-bar{
+      background:#fff;
+    }
+
+    .light .footer{
+      background:#ddd;
+      color:#111;
     }
 
     .top-bar{
-      padding:10px;
+      padding:12px;
       text-align:center;
+      background:#000;
+    }
+
+    .top-bar h2{
+      margin-top:5px;
     }
 
     input{
@@ -33,6 +53,7 @@
       border:none;
       border-radius:5px;
       outline:none;
+      font-size:15px;
     }
 
     button{
@@ -44,7 +65,9 @@
       position:fixed;
       top:10px;
       right:10px;
-      z-index:999;
+      z-index:999999;
+      display:flex;
+      gap:5px;
     }
 
     .top-controls button{
@@ -52,7 +75,6 @@
       color:white;
       border:none;
       padding:8px 12px;
-      margin-left:5px;
       border-radius:5px;
       font-weight:bold;
     }
@@ -69,13 +91,14 @@
       background:#1c1c1c;
       position:relative;
       overflow:hidden;
-      min-height:220px;
-      border-radius:8px;
+      min-height:240px;
+      border-radius:10px;
+      transition:0.3s;
     }
 
     .minimized{
-      height:60px !important;
-      min-height:60px !important;
+      min-height:70px !important;
+      height:70px !important;
     }
 
     .player{
@@ -86,18 +109,25 @@
     iframe{
       width:100% !important;
       height:100% !important;
+      border:none;
     }
 
-    /* CONTROLS */
+    /* 🎛 CONTROLS */
     .controls{
       position:absolute;
-      top:5px;
-      right:5px;
-      z-index:10;
+      top:45px;
+      left:5px;
+      z-index:99999;
       display:flex;
       align-items:center;
       gap:4px;
       flex-wrap:wrap;
+      opacity:0;
+      transition:0.3s;
+    }
+
+    .card:hover .controls{
+      opacity:1;
     }
 
     .controls button{
@@ -110,7 +140,29 @@
     }
 
     .volume-slider{
-      width:70px;
+      width:75px;
+    }
+
+    /* 📺 TITLE */
+    .stream-title{
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      background:rgba(0,0,0,0.6);
+      padding:6px 10px;
+      z-index:999;
+      font-size:14px;
+      font-weight:bold;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    /* ⭐ FAVORITE */
+    .favorite{
+      background:gold !important;
+      color:black !important;
     }
 
     /* FOOTER */
@@ -129,6 +181,10 @@
         grid-template-columns:repeat(2,1fr) !important;
       }
 
+      .controls{
+        opacity:1;
+      }
+
     }
 
     @media(max-width:600px){
@@ -145,6 +201,11 @@
         top:auto;
         bottom:10px;
         right:10px;
+      }
+
+      .controls{
+        top:auto;
+        bottom:5px;
       }
 
     }
@@ -166,7 +227,7 @@
 
 </div>
 
-<!-- 🔥 PLAY / PAUSE -->
+<!-- 🎛 GLOBAL -->
 <div class="top-controls">
 
   <button onclick="playAll()">▶ Play</button>
@@ -186,10 +247,9 @@
 
 <!-- 🔥 FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-<!-- 🔥 YOUTUBE API -->
+<!-- 🔥 YOUTUBE -->
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <!-- 🔥 SORTABLE -->
@@ -216,28 +276,28 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 
-// 🔥 YOUTUBE API READY
+// 🔥 API READY
 let apiReady = false;
 
-function onYouTubeIframeAPIReady() {
+function onYouTubeIframeAPIReady(){
 
   apiReady = true;
 
 }
 
 
-// 🔥 STORE PLAYERS
+// 🎥 PLAYERS
 let players = {};
 
 
-// 👤 REAL ONLINE TRACKING
+// 👤 ONLINE USERS
 const userId = Math.random().toString(36).substring(2);
 
 const userRef = db.ref("users/" + userId);
 
 db.ref(".info/connected").on("value", snap => {
 
-  if (snap.val() === true) {
+  if(snap.val() === true){
 
     userRef.set(true);
 
@@ -248,7 +308,7 @@ db.ref(".info/connected").on("value", snap => {
 });
 
 
-// 🟢 ONLINE COUNT
+// 🟢 VIEWERS
 db.ref("users").on("value", snap => {
 
   document.getElementById("viewerCount").innerText =
@@ -262,8 +322,6 @@ db.ref("streams").on("value", snap => {
 
   const grid = document.getElementById("grid");
 
-
-  // 🔥 DESTROY OLD PLAYERS
   Object.values(players).forEach(player => {
 
     if(player.destroy){
@@ -278,11 +336,7 @@ db.ref("streams").on("value", snap => {
 
   grid.innerHTML = "";
 
-
-  let count = snap.numChildren();
-
-  updateGrid(count);
-
+  updateGrid(snap.numChildren());
 
   snap.forEach(child => {
 
@@ -294,15 +348,15 @@ db.ref("streams").on("value", snap => {
 
 
 // ➕ ADD STREAM
-function addStream() {
+function addStream(){
 
   let url = document.getElementById("link").value.trim();
 
   let id = getId(url);
 
-  if (!id) {
+  if(!id){
 
-    alert("Invalid YouTube link");
+    alert("Invalid YouTube Link");
 
     return;
 
@@ -310,21 +364,19 @@ function addStream() {
 
   db.ref("streams").once("value", snap => {
 
-    // 🔥 LIMIT
-    if (snap.numChildren() >= 9) {
+    if(snap.numChildren() >= 9){
 
-      alert("Maximum 9 streams allowed");
+      alert("Maximum 9 streams");
 
       return;
 
     }
 
-    // 🔥 PREVENT DUPLICATES
     let exists = false;
 
     snap.forEach(child => {
 
-      if (child.val() === id) {
+      if(child.val() === id){
 
         exists = true;
 
@@ -332,9 +384,9 @@ function addStream() {
 
     });
 
-    if (exists) {
+    if(exists){
 
-      alert("Stream already added");
+      alert("Stream already exists");
 
       return;
 
@@ -350,15 +402,15 @@ function addStream() {
 
 
 // 🎬 CREATE PLAYER
-function createPlayer(id, key) {
+function createPlayer(id,key){
 
-  if (!apiReady) {
+  if(!apiReady){
 
     setTimeout(() => {
 
-      createPlayer(id, key);
+      createPlayer(id,key);
 
-    }, 500);
+    },500);
 
     return;
 
@@ -371,7 +423,17 @@ function createPlayer(id, key) {
   div.className = "card";
 
 
-  // 🔥 PLAYER CONTAINER
+  // 📺 TITLE
+  let title = document.createElement("div");
+
+  title.className = "stream-title";
+
+  title.innerText = "YouTube Live Stream";
+
+  div.appendChild(title);
+
+
+  // PLAYER
   let playerDiv = document.createElement("div");
 
   playerDiv.className = "player";
@@ -381,7 +443,7 @@ function createPlayer(id, key) {
   div.appendChild(playerDiv);
 
 
-  // 🔥 CONTROLS
+  // 🎛 CONTROLS
   let controls = document.createElement("div");
 
   controls.className = "controls";
@@ -422,11 +484,11 @@ function createPlayer(id, key) {
 
   fullscreenBtn.onclick = () => {
 
-    if (!document.fullscreenElement) {
+    if(!document.fullscreenElement){
 
       div.requestFullscreen();
 
-    } else {
+    }else{
 
       document.exitFullscreen();
 
@@ -456,6 +518,15 @@ function createPlayer(id, key) {
 
   favBtn.innerText = "⭐";
 
+  let favs =
+    JSON.parse(localStorage.getItem("favorites") || "[]");
+
+  if(favs.includes(id)){
+
+    favBtn.classList.add("favorite");
+
+  }
+
   favBtn.onclick = () => {
 
     let favs =
@@ -465,11 +536,14 @@ function createPlayer(id, key) {
 
       favs.push(id);
 
+      localStorage.setItem(
+        "favorites",
+        JSON.stringify(favs)
+      );
+
+      favBtn.classList.add("favorite");
+
     }
-
-    localStorage.setItem("favorites", JSON.stringify(favs));
-
-    alert("Added to favorites");
 
   };
 
@@ -477,51 +551,51 @@ function createPlayer(id, key) {
 
 
   // ❌ DELETE
-  let btn = document.createElement("button");
+  let deleteBtn = document.createElement("button");
 
-  btn.innerText = "X";
+  deleteBtn.innerText = "X";
 
-  btn.onclick = () => {
+  deleteBtn.onclick = () => {
 
     db.ref("streams/" + key).remove();
 
   };
 
-  controls.appendChild(btn);
+  controls.appendChild(deleteBtn);
 
   div.appendChild(controls);
 
   grid.appendChild(div);
 
 
-  // 🔥 REAL YOUTUBE PLAYER
+  // 🔥 YOUTUBE PLAYER
   players[key] = new YT.Player(playerDiv.id, {
 
-    width: "100%",
+    width:"100%",
 
-    height: "100%",
+    height:"100%",
 
-    videoId: id,
+    videoId:id,
 
-    playerVars: {
+    playerVars:{
 
-      autoplay: 1,
+      autoplay:1,
 
-      mute: 1,
+      mute:1,
 
-      controls: 1,
+      controls:1,
 
-      playsinline: 1,
+      playsinline:1,
 
-      enablejsapi: 1,
+      enablejsapi:1,
 
-      rel: 0
+      rel:0
 
     },
 
-    events: {
+    events:{
 
-      onReady: function(event){
+      onReady:function(event){
 
         event.target.playVideo();
 
@@ -535,28 +609,15 @@ function createPlayer(id, key) {
 
 
 // ▶ PLAY ALL
-function playAll() {
+function playAll(){
 
-  Object.keys(players).forEach(key => {
+  Object.values(players).forEach(player => {
 
-    let player = players[key];
+    try{
 
-    if (
-      player &&
-      typeof player.playVideo === "function"
-    ) {
+      player.playVideo();
 
-      try {
-
-        player.playVideo();
-
-      } catch(err) {
-
-        console.log(err);
-
-      }
-
-    }
+    }catch(err){}
 
   });
 
@@ -564,28 +625,15 @@ function playAll() {
 
 
 // ⏸ PAUSE ALL
-function pauseAll() {
+function pauseAll(){
 
-  Object.keys(players).forEach(key => {
+  Object.values(players).forEach(player => {
 
-    let player = players[key];
+    try{
 
-    if (
-      player &&
-      typeof player.pauseVideo === "function"
-    ) {
+      player.pauseVideo();
 
-      try {
-
-        player.pauseVideo();
-
-      } catch(err) {
-
-        console.log(err);
-
-      }
-
-    }
+    }catch(err){}
 
   });
 
@@ -600,7 +648,7 @@ function toggleTheme(){
 }
 
 
-// 🔥 SMART GRID
+// 🔥 GRID
 function updateGrid(count){
 
   const grid = document.getElementById("grid");
@@ -613,21 +661,23 @@ function updateGrid(count){
 
   else if(count <= 4){
 
-    grid.style.gridTemplateColumns = "repeat(2,1fr)";
+    grid.style.gridTemplateColumns =
+      "repeat(2,1fr)";
 
   }
 
   else{
 
-    grid.style.gridTemplateColumns = "repeat(3,1fr)";
+    grid.style.gridTemplateColumns =
+      "repeat(3,1fr)";
 
   }
 
 }
 
 
-// 🔗 BETTER YOUTUBE ID EXTRACTION
-function getId(url) {
+// 🔗 GET ID
+function getId(url){
 
   let r =
     /(?:youtube\.com\/(?:watch\?v=|shorts\/|live\/|embed\/)|youtu\.be\/)([^?&#]+)/;
@@ -639,10 +689,10 @@ function getId(url) {
 }
 
 
-// 🔥 DRAG & DROP
+// 🔥 DRAG DROP
 new Sortable(document.getElementById("grid"), {
 
-  animation: 150
+  animation:150
 
 });
 
