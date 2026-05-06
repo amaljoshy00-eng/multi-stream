@@ -88,7 +88,7 @@
       height:100% !important;
     }
 
-    /* ❌ DELETE BUTTON */
+    /* CONTROLS */
     .controls{
       position:absolute;
       top:5px;
@@ -107,7 +107,6 @@
       padding:4px 8px;
       border-radius:4px;
       font-size:12px;
-      margin-left:4px;
     }
 
     .volume-slider{
@@ -382,7 +381,7 @@ function createPlayer(id, key) {
   div.appendChild(playerDiv);
 
 
-  // ❌ CONTROLS
+  // 🔥 CONTROLS
   let controls = document.createElement("div");
 
   controls.className = "controls";
@@ -414,35 +413,6 @@ function createPlayer(id, key) {
   };
 
   controls.appendChild(volume);
-
-
-  // 🌙 PIP
-  let pipBtn = document.createElement("button");
-
-  pipBtn.innerText = "PiP";
-
-  pipBtn.onclick = async () => {
-
-    try {
-
-      const iframe =
-        document.querySelector(`#player-${key} iframe`);
-
-      if (document.pictureInPictureElement) {
-
-        await document.exitPictureInPicture();
-
-      }
-
-    } catch(err){
-
-      console.log(err);
-
-    }
-
-  };
-
-  controls.appendChild(pipBtn);
 
 
   // 🔥 FULLSCREEN
@@ -544,8 +514,6 @@ function createPlayer(id, key) {
       playsinline: 1,
 
       enablejsapi: 1,
-
-      origin: window.location.origin,
 
       rel: 0
 
