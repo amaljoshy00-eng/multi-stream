@@ -32,7 +32,7 @@
       cursor:pointer;
     }
 
-    /* 🔥 GLOBAL PLAY/PAUSE */
+    /* 🔥 GLOBAL CONTROLS */
     .top-controls{
       position:fixed;
       top:10px;
@@ -101,9 +101,11 @@
 
     /* 📱 MOBILE */
     @media(max-width:900px){
+
       .grid{
         grid-template-columns:repeat(2,1fr);
       }
+
     }
 
     @media(max-width:600px){
@@ -121,6 +123,7 @@
         bottom:10px;
         right:10px;
       }
+
     }
   </style>
 </head>
@@ -139,7 +142,7 @@
 
 </div>
 
-<!-- 🔥 GLOBAL CONTROLS -->
+<!-- 🔥 GLOBAL PLAY / PAUSE -->
 <div class="top-controls">
 
   <button onclick="playAll()">▶ Play</button>
@@ -148,7 +151,7 @@
 
 </div>
 
-<!-- 🎥 STREAM GRID -->
+<!-- 🎥 GRID -->
 <div class="grid" id="grid"></div>
 
 <div class="footer">
@@ -181,7 +184,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 
-// 👤 REAL ONLINE USER TRACKING
+// 👤 REAL ONLINE TRACKING
 const userId = Math.random().toString(36).substring(2);
 
 const userRef = db.ref("users/" + userId);
@@ -241,7 +244,7 @@ function addStream() {
 
   db.ref("streams").once("value", snap => {
 
-    // 🔥 LIMIT 9
+    // 🔥 LIMIT
     if (snap.numChildren() >= 9) {
 
       alert("Maximum 9 streams allowed");
@@ -250,7 +253,7 @@ function addStream() {
 
     }
 
-    // 🔥 PREVENT DUPLICATES
+    // 🔥 PREVENT DUPLICATE
     let exists = false;
 
     snap.forEach(child => {
@@ -296,7 +299,8 @@ function createPlayer(id, key) {
   iframe.src =
     "https://www.youtube.com/embed/" +
     id +
-    "?enablejsapi=1&autoplay=1&mute=1&playsinline=1";
+    "?enablejsapi=1&autoplay=1&mute=1&playsinline=1&origin=" +
+    window.location.origin;
 
   iframe.allow = "autoplay";
 
@@ -333,8 +337,15 @@ function playAll() {
   document.querySelectorAll("iframe").forEach(frame => {
 
     frame.contentWindow.postMessage(
-      '{"event":"command","func":"playVideo","args":""}',
-      '*'
+
+      JSON.stringify({
+        event: "command",
+        func: "playVideo",
+        args: []
+      }),
+
+      "*"
+
     );
 
   });
@@ -348,8 +359,15 @@ function pauseAll() {
   document.querySelectorAll("iframe").forEach(frame => {
 
     frame.contentWindow.postMessage(
-      '{"event":"command","func":"pauseVideo","args":""}',
-      '*'
+
+      JSON.stringify({
+        event: "command",
+        func: "pauseVideo",
+        args: []
+      }),
+
+      "*"
+
     );
 
   });
