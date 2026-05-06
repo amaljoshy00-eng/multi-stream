@@ -13,9 +13,7 @@
       font-family:Arial,sans-serif;
       margin:0;
       height:100vh;
-      display:flex;
-      flex-direction:column;
-      transition:0.3s;
+      overflow:hidden;
     }
 
     /* 🌙 LIGHT MODE */
@@ -25,11 +23,12 @@
     }
 
     .light .card{
-      background:#ffffff;
+      background:#fff;
     }
 
     .light .top-bar{
       background:#fff;
+      color:#111;
     }
 
     .light .footer{
@@ -37,31 +36,32 @@
       color:#111;
     }
 
+    /* 🔥 TOP BAR */
     .top-bar{
+      background:#000;
       padding:12px;
       text-align:center;
-      background:#000;
     }
 
     input{
       padding:10px;
       width:60%;
       border:none;
-      border-radius:5px;
+      border-radius:6px;
       outline:none;
-      font-size:15px;
     }
 
     button{
       cursor:pointer;
     }
 
-    /* 🎛 GLOBAL CONTROLS */
+    /* 🎛 GLOBAL BUTTONS */
     .top-controls{
-      position:fixed;
-      top:10px;
-      right:10px;
-      z-index:999999;
+      position:fixed !important;
+      top:15px !important;
+      right:15px !important;
+      z-index:9999999 !important;
+
       display:flex;
       gap:10px;
       flex-wrap:wrap;
@@ -76,12 +76,13 @@
       font-weight:bold;
     }
 
-    /* 🔥 MENUS */
+    /* 🔥 RIGHT PANEL */
     .menu-panel{
-      position:fixed;
-      top:60px;
-      right:10px;
-      z-index:999999;
+      position:fixed !important;
+      top:70px !important;
+      right:15px !important;
+      z-index:9999999 !important;
+
       display:flex;
       flex-direction:column;
       align-items:flex-end;
@@ -101,7 +102,6 @@
       display:none;
       flex-direction:column;
       gap:8px;
-      margin-top:5px;
       align-items:flex-end;
     }
 
@@ -109,27 +109,21 @@
       background:#444;
     }
 
-    /* 🔥 GRID */
+    /* 🎥 GRID */
     .grid{
       display:grid;
       gap:6px;
-      flex:1;
       padding:6px;
+      height:calc(100vh - 140px);
       transition:0.3s;
     }
 
     .card{
       background:#1c1c1c;
-      position:relative;
-      overflow:hidden;
-      min-height:240px;
       border-radius:10px;
-      transition:0.3s;
-    }
-
-    .minimized{
-      min-height:70px !important;
-      height:70px !important;
+      overflow:hidden;
+      position:relative;
+      min-height:240px;
     }
 
     .player{
@@ -146,13 +140,14 @@
     /* 🎛 STREAM CONTROLS */
     .controls{
       position:absolute;
-      top:45px;
+      top:5px;
       left:5px;
       z-index:99999;
+
       display:flex;
-      align-items:center;
       gap:4px;
       flex-wrap:wrap;
+
       opacity:0;
       transition:0.3s;
     }
@@ -171,56 +166,46 @@
     }
 
     .volume-slider{
-      width:75px;
+      width:70px;
     }
 
-    /* ⭐ FAVORITE */
     .favorite{
       background:gold !important;
       color:black !important;
     }
 
-    /* FOOTER */
     .footer{
+      position:fixed;
+      bottom:0;
+      width:100%;
       text-align:center;
-      padding:8px;
-      color:#00e676;
       background:#000;
+      color:#00ff88;
+      padding:6px;
       font-size:12px;
     }
 
     /* 📱 MOBILE */
-    @media(max-width:900px){
-
-      .controls{
-        opacity:1;
-      }
-
-    }
-
     @media(max-width:600px){
-
-      .grid{
-        grid-template-columns:1fr !important;
-      }
 
       input{
         width:90%;
       }
 
-      .controls{
-        top:auto;
-        bottom:5px;
-      }
-
       .top-controls{
-        top:10px;
-        right:10px;
+        top:auto !important;
+        bottom:15px !important;
+        right:10px !important;
       }
 
       .menu-panel{
-        top:60px;
-        right:10px;
+        top:auto !important;
+        bottom:70px !important;
+        right:10px !important;
+      }
+
+      .controls{
+        opacity:1;
       }
 
     }
@@ -230,6 +215,7 @@
 
 <body>
 
+<!-- 🔥 TOP -->
 <div class="top-bar">
 
   <h2>🔥 Advanced Multi Stream</h2>
@@ -238,11 +224,14 @@
 
   <button onclick="addStream()">Add</button>
 
-  <h3>🟢 Online: <span id="viewerCount">0</span></h3>
+  <h3>
+    🟢 Online:
+    <span id="viewerCount">0</span>
+  </h3>
 
 </div>
 
-<!-- 🎛 GLOBAL CONTROLS -->
+<!-- 🎛 GLOBAL -->
 <div class="top-controls">
 
   <button onclick="playAll()">▶ Play</button>
@@ -257,7 +246,7 @@
 
 </div>
 
-<!-- 🔥 MENUS -->
+<!-- 🔥 SIDE PANEL -->
 <div class="menu-panel">
 
   <!-- GRID -->
@@ -357,8 +346,6 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
-
-// 🔥 API READY
 let apiReady = false;
 
 function onYouTubeIframeAPIReady(){
@@ -367,25 +354,23 @@ function onYouTubeIframeAPIReady(){
 
 }
 
-
-// 🎥 PLAYERS
 let players = {};
 
-
-// 🎛 GRID MODE
 let manualGridEnabled = false;
 
 let maxVisibleStreams = 9;
 
+/* 👤 USERS */
 
-// 👤 ONLINE USERS
-const userId = Math.random().toString(36).substring(2);
+const userId =
+  Math.random().toString(36).substring(2);
 
-const userRef = db.ref("users/" + userId);
+const userRef =
+  db.ref("users/" + userId);
 
 db.ref(".info/connected").on("value", snap => {
 
-  if(snap.val() === true){
+  if(snap.val()){
 
     userRef.set(true);
 
@@ -395,20 +380,21 @@ db.ref(".info/connected").on("value", snap => {
 
 });
 
+/* 🟢 VIEWERS */
 
-// 🟢 VIEWERS
 db.ref("users").on("value", snap => {
 
-  document.getElementById("viewerCount").innerText =
-    snap.numChildren();
+  document.getElementById("viewerCount")
+    .innerText = snap.numChildren();
 
 });
 
+/* 🎥 LOAD STREAMS */
 
-// 🎥 LOAD STREAMS
 db.ref("streams").on("value", snap => {
 
-  const grid = document.getElementById("grid");
+  const grid =
+    document.getElementById("grid");
 
   Object.values(players).forEach(player => {
 
@@ -440,11 +426,12 @@ db.ref("streams").on("value", snap => {
 
 });
 
+/* ➕ ADD */
 
-// ➕ ADD STREAM
 function addStream(){
 
-  let url = document.getElementById("link").value.trim();
+  let url =
+    document.getElementById("link").value.trim();
 
   let id = getId(url);
 
@@ -466,26 +453,6 @@ function addStream(){
 
     }
 
-    let exists = false;
-
-    snap.forEach(child => {
-
-      if(child.val() === id){
-
-        exists = true;
-
-      }
-
-    });
-
-    if(exists){
-
-      alert("Stream already exists");
-
-      return;
-
-    }
-
     db.ref("streams").push(id);
 
     document.getElementById("link").value = "";
@@ -494,8 +461,8 @@ function addStream(){
 
 }
 
+/* 🎬 PLAYER */
 
-// 🎬 CREATE PLAYER
 function createPlayer(id,key){
 
   if(!apiReady){
@@ -510,15 +477,16 @@ function createPlayer(id,key){
 
   }
 
-  const grid = document.getElementById("grid");
+  const grid =
+    document.getElementById("grid");
 
-  let div = document.createElement("div");
+  let div =
+    document.createElement("div");
 
   div.className = "card";
 
-
-  // PLAYER
-  let playerDiv = document.createElement("div");
+  let playerDiv =
+    document.createElement("div");
 
   playerDiv.className = "player";
 
@@ -526,15 +494,17 @@ function createPlayer(id,key){
 
   div.appendChild(playerDiv);
 
+  /* 🎛 CONTROLS */
 
-  // 🎛 CONTROLS
-  let controls = document.createElement("div");
+  let controls =
+    document.createElement("div");
 
   controls.className = "controls";
 
+  /* 🔊 VOLUME */
 
-  // 🔊 VOLUME
-  let volume = document.createElement("input");
+  let volume =
+    document.createElement("input");
 
   volume.type = "range";
 
@@ -548,11 +518,9 @@ function createPlayer(id,key){
 
   volume.oninput = () => {
 
-    let player = players[key];
+    if(players[key]){
 
-    if(player && player.setVolume){
-
-      player.setVolume(volume.value);
+      players[key].setVolume(volume.value);
 
     }
 
@@ -560,153 +528,96 @@ function createPlayer(id,key){
 
   controls.appendChild(volume);
 
+  /* ⛶ FULLSCREEN */
 
-  // 🔥 FULLSCREEN
-  let fullscreenBtn = document.createElement("button");
+  let fullBtn =
+    document.createElement("button");
 
-  fullscreenBtn.innerText = "⛶";
+  fullBtn.innerText = "⛶";
 
-  fullscreenBtn.onclick = () => {
+  fullBtn.onclick = () => {
 
-    if(!document.fullscreenElement){
-
-      div.requestFullscreen();
-
-    }else{
-
-      document.exitFullscreen();
-
-    }
+    div.requestFullscreen();
 
   };
 
-  controls.appendChild(fullscreenBtn);
+  controls.appendChild(fullBtn);
 
+  /* ⭐ FAVORITE */
 
-  // ➖ MINIMIZE
-  let minBtn = document.createElement("button");
-
-  minBtn.innerText = "—";
-
-  minBtn.onclick = () => {
-
-    div.classList.toggle("minimized");
-
-  };
-
-  controls.appendChild(minBtn);
-
-
-  // ⭐ FAVORITE
-  let favBtn = document.createElement("button");
+  let favBtn =
+    document.createElement("button");
 
   favBtn.innerText = "⭐";
 
-  function updateFavoriteUI(){
-
-    let favs =
-      JSON.parse(localStorage.getItem("favorites") || "[]");
-
-    if(favs.includes(id)){
-
-      favBtn.classList.add("favorite");
-
-    }else{
-
-      favBtn.classList.remove("favorite");
-
-    }
-
-  }
-
-  updateFavoriteUI();
-
   favBtn.onclick = () => {
 
-    let favs =
-      JSON.parse(localStorage.getItem("favorites") || "[]");
-
-    if(favs.includes(id)){
-
-      favs = favs.filter(f => f !== id);
-
-    }else{
-
-      favs.push(id);
-
-    }
-
-    localStorage.setItem(
-      "favorites",
-      JSON.stringify(favs)
-    );
-
-    updateFavoriteUI();
+    favBtn.classList.toggle("favorite");
 
   };
 
   controls.appendChild(favBtn);
 
+  /* ❌ DELETE */
 
-  // ❌ DELETE
-  let deleteBtn = document.createElement("button");
+  let delBtn =
+    document.createElement("button");
 
-  deleteBtn.innerText = "X";
+  delBtn.innerText = "X";
 
-  deleteBtn.onclick = () => {
+  delBtn.onclick = () => {
 
     db.ref("streams/" + key).remove();
 
   };
 
-  controls.appendChild(deleteBtn);
+  controls.appendChild(delBtn);
 
   div.appendChild(controls);
 
   grid.appendChild(div);
 
+  /* 🔥 YOUTUBE */
 
-  // 🔥 YOUTUBE PLAYER
-  players[key] = new YT.Player(playerDiv.id, {
+  players[key] =
+    new YT.Player(playerDiv.id, {
 
-    width:"100%",
+      width:"100%",
 
-    height:"100%",
+      height:"100%",
 
-    videoId:id,
+      videoId:id,
 
-    playerVars:{
+      playerVars:{
 
-      autoplay:1,
+        autoplay:1,
 
-      mute:1,
+        mute:1,
 
-      controls:1,
+        controls:1,
 
-      playsinline:1,
+        playsinline:1,
 
-      enablejsapi:1,
+        enablejsapi:1
 
-      rel:0
+      },
 
-    },
+      events:{
 
-    events:{
+        onReady:function(event){
 
-      onReady:function(event){
+          event.target.playVideo();
 
-        event.target.playVideo();
+        }
 
       }
 
-    }
-
-  });
+    });
 
 }
 
+/* ▶ PLAY */
 
-// ▶ PLAY ALL
 function playAll(){
 
   Object.values(players).forEach(player => {
@@ -721,8 +632,8 @@ function playAll(){
 
 }
 
+/* ⏸ PAUSE */
 
-// ⏸ PAUSE ALL
 function pauseAll(){
 
   Object.values(players).forEach(player => {
@@ -737,8 +648,8 @@ function pauseAll(){
 
 }
 
+/* 🔇 MUTE */
 
-// 🔇 MUTE ALL
 function muteAll(){
 
   Object.values(players).forEach(player => {
@@ -753,8 +664,8 @@ function muteAll(){
 
 }
 
+/* 🔊 UNMUTE */
 
-// 🔊 UNMUTE ALL
 function unmuteAll(){
 
   Object.values(players).forEach(player => {
@@ -769,92 +680,74 @@ function unmuteAll(){
 
 }
 
+/* 🌙 THEME */
 
-// 🌙 THEME
 function toggleTheme(){
 
   document.body.classList.toggle("light");
 
 }
 
+/* 🟦 GRID MENU */
 
-// 🎛 GRID MENU
 function toggleGridMenu(){
 
   const menu =
     document.getElementById("gridMenu");
 
-  if(menu.style.display === "flex"){
-
-    menu.style.display = "none";
-
-  }else{
-
-    menu.style.display = "flex";
-
-  }
+  menu.style.display =
+    menu.style.display === "flex"
+      ? "none"
+      : "flex";
 
 }
 
+/* ⚙ SETTINGS */
 
-// ⚙ SETTINGS MENU
 function toggleSettingsMenu(){
 
   const menu =
     document.getElementById("settingsMenu");
 
-  if(menu.style.display === "flex"){
-
-    menu.style.display = "none";
-
-  }else{
-
-    menu.style.display = "flex";
-
-  }
+  menu.style.display =
+    menu.style.display === "flex"
+      ? "none"
+      : "flex";
 
 }
 
+/* 🔥 SMART GRID */
 
-// 🔥 AUTO SMART GRID
 function updateGrid(count){
 
-  const grid = document.getElementById("grid");
+  const grid =
+    document.getElementById("grid");
 
   if(count === 1){
 
-    grid.style.gridTemplateColumns = "1fr";
+    grid.style.gridTemplateColumns =
+      "1fr";
 
   }
 
-  else if(count === 2){
+  else if(count <= 4){
 
-    grid.style.gridTemplateColumns = "repeat(2,1fr)";
-
-  }
-
-  else if(count === 3){
-
-    grid.style.gridTemplateColumns = "repeat(3,1fr)";
-
-  }
-
-  else if(count === 4){
-
-    grid.style.gridTemplateColumns = "repeat(2,1fr)";
+    grid.style.gridTemplateColumns =
+      "repeat(2,1fr)";
 
   }
 
   else{
 
-    grid.style.gridTemplateColumns = "repeat(3,1fr)";
+    grid.style.gridTemplateColumns =
+      "repeat(3,1fr)";
 
   }
 
 }
 
+/* 🎛 GRID MODE */
 
-// 🎛 GRID MODE
 function setGridMode(limit){
 
   manualGridEnabled = true;
@@ -866,7 +759,8 @@ function setGridMode(limit){
 
   if(limit === 1){
 
-    grid.style.gridTemplateColumns = "1fr";
+    grid.style.gridTemplateColumns =
+      "1fr";
 
   }
 
@@ -888,8 +782,8 @@ function setGridMode(limit){
 
 }
 
+/* 🔄 AUTO */
 
-// 🔄 AUTO GRID
 function enableAutoGrid(){
 
   manualGridEnabled = false;
@@ -904,8 +798,8 @@ function enableAutoGrid(){
 
 }
 
+/* 👁 VISIBILITY */
 
-// 👁 APPLY VISIBILITY
 function applyVisibility(){
 
   const cards =
@@ -913,22 +807,17 @@ function applyVisibility(){
 
   cards.forEach((card,index) => {
 
-    if(index < maxVisibleStreams){
-
-      card.style.display = "block";
-
-    }else{
-
-      card.style.display = "none";
-
-    }
+    card.style.display =
+      index < maxVisibleStreams
+        ? "block"
+        : "none";
 
   });
 
 }
 
+/* ⚙ QUALITY */
 
-// ⚙ GLOBAL QUALITY
 function setGlobalQuality(quality){
 
   Object.values(players).forEach(player => {
@@ -943,8 +832,8 @@ function setGlobalQuality(quality){
 
 }
 
+/* 🔗 GET ID */
 
-// 🔗 GET ID
 function getId(url){
 
   let r =
@@ -956,13 +845,14 @@ function getId(url){
 
 }
 
+/* 🔥 DRAG DROP */
 
-// 🔥 DRAG DROP
-new Sortable(document.getElementById("grid"), {
-
-  animation:150
-
-});
+new Sortable(
+  document.getElementById("grid"),
+  {
+    animation:150
+  }
+);
 
 </script>
 
