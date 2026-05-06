@@ -5,15 +5,111 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    body { background:#111; color:white; font-family:Arial; margin:0; height:100vh; display:flex; flex-direction:column; }
-    .top-bar { padding:10px; text-align:center; }
-    input { padding:10px; width:60%; }
-    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; flex:1; padding:6px; }
-    .card { background:#1c1c1c; position:relative; }
-    iframe { width:100%; height:100%; border:none; }
-    .controls { position:absolute; top:5px; right:5px; }
-    .controls button { background:red; color:white; border:none; }
-    .footer { text-align:center; padding:8px; color:#00e676; }
+    body{
+      background:#111;
+      color:white;
+      font-family:Arial;
+      margin:0;
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .top-bar{
+      padding:10px;
+      text-align:center;
+    }
+
+    input{
+      padding:10px;
+      width:60%;
+      border:none;
+      border-radius:5px;
+    }
+
+    button{
+      cursor:pointer;
+    }
+
+    /* 🔥 GLOBAL CONTROLS */
+    .top-controls{
+      position:fixed;
+      top:10px;
+      right:10px;
+      z-index:999;
+    }
+
+    .top-controls button{
+      background:red;
+      color:white;
+      border:none;
+      padding:8px 12px;
+      margin-left:5px;
+      border-radius:5px;
+      font-weight:bold;
+    }
+
+    /* 🔥 GRID */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      grid-template-rows:repeat(3,1fr);
+      gap:6px;
+      flex:1;
+      padding:6px;
+    }
+
+    .card{
+      background:#1c1c1c;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .controls{
+      position:absolute;
+      top:5px;
+      right:5px;
+      z-index:10;
+    }
+
+    .controls button{
+      background:red;
+      color:white;
+      border:none;
+      padding:4px 8px;
+      border-radius:4px;
+      font-size:12px;
+    }
+
+    iframe{
+      width:100%;
+      height:100%;
+      border:none;
+    }
+
+    .footer{
+      text-align:center;
+      padding:8px;
+      color:#00e676;
+      background:#000;
+      font-size:12px;
+    }
+
+    @media(max-width:900px){
+      .grid{
+        grid-template-columns:repeat(2,1fr);
+      }
+    }
+
+    @media(max-width:600px){
+      .grid{
+        grid-template-columns:1fr;
+      }
+
+      input{
+        width:90%;
+      }
+    }
   </style>
 </head>
 
@@ -21,17 +117,31 @@
 
 <div class="top-bar">
   <h2>🔥 Multi Stream (9 max)</h2>
+
   <input id="link" placeholder="Paste YouTube link">
   <button onclick="addStream()">Add</button>
+
   <h3>🟢 Online: <span id="viewerCount">0</span></h3>
+</div>
+
+<!-- 🔥 GLOBAL PLAY/PAUSE -->
+<div class="top-controls">
+  <button onclick="playAll()">▶ Play All</button>
+  <button onclick="pauseAll()">⏸ Pause All</button>
 </div>
 
 <div class="grid" id="grid"></div>
 
-<div class="footer">Developed by Amal Joshy</div>
+<div class="footer">
+  Developed by Amal Joshy
+</div>
 
+<!-- 🔥 Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<!-- 🔥 YouTube API -->
+<script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
 const firebaseConfig = {
@@ -45,77 +155,137 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 👤 user tracking
-let userId = sessionStorage.getItem("userId");
-if (!userId) {
-  userId = Math.random().toString(36).substring(2);
-  sessionStorage.setItem("userId", userId);
-}
+// 🔥 YOUTUBE PLAYERS
+let players = {};
 
+// 👤 REAL ONLINE USER TRACKING
+const userId = Math.random().toString(36).substring(2);
 const userRef = db.ref("users/" + userId);
-userRef.set(true);
-userRef.onDisconnect().remove();
 
-// 🟢 viewer count
+db.ref(".info/connected").on("value", snap => {
+  if (snap.val() === true) {
+    userRef.set(true);
+    userRef.onDisconnect().remove();
+  }
+});
+
+// 🟢 ONLINE COUNT
 db.ref("users").on("value", snap => {
   document.getElementById("viewerCount").innerText = snap.numChildren();
 });
 
-// 🎥 load streams
+// 🎥 LOAD STREAMS
 db.ref("streams").on("value", snap => {
   const grid = document.getElementById("grid");
+
   grid.innerHTML = "";
-  snap.forEach(child => createPlayer(child.val(), child.key));
+  players = {};
+
+  snap.forEach(child => {
+    createPlayer(child.val(), child.key);
+  });
 });
 
-// ➕ add stream
+// ➕ ADD STREAM
 function addStream() {
-  let url = document.getElementById("link").value;
+
+  let url = document.getElementById("link").value.trim();
   let id = getId(url);
 
   if (!id) {
-    alert("Invalid link");
+    alert("Invalid YouTube link");
     return;
   }
 
   db.ref("streams").once("value", snap => {
+
     if (snap.numChildren() >= 9) {
-      alert("Max 9 streams");
+      alert("Maximum 9 streams allowed");
       return;
     }
+
     db.ref("streams").push(id);
+
     document.getElementById("link").value = "";
   });
 }
 
-// 🎬 create player
+// 🎬 CREATE PLAYER
 function createPlayer(id, key) {
+
   const grid = document.getElementById("grid");
 
   let div = document.createElement("div");
   div.className = "card";
 
-  let iframe = document.createElement("iframe");
-  iframe.src = "https://www.youtube.com/embed/" + id + "?autoplay=1&mute=1";
+  // player container
+  let playerDiv = document.createElement("div");
+  playerDiv.id = "player-" + key;
 
-  div.appendChild(iframe);
+  div.appendChild(playerDiv);
+
+  // ❌ delete button
+  let controls = document.createElement("div");
+  controls.className = "controls";
 
   let btn = document.createElement("button");
   btn.innerText = "X";
-  btn.onclick = () => db.ref("streams/" + key).remove();
 
-  let controls = document.createElement("div");
-  controls.className = "controls";
+  btn.onclick = () => {
+    db.ref("streams/" + key).remove();
+  };
+
   controls.appendChild(btn);
 
   div.appendChild(controls);
+
   grid.appendChild(div);
+
+  // 🔥 REAL YOUTUBE PLAYER
+  players[key] = new YT.Player("player-" + key, {
+    height: "100%",
+    width: "100%",
+    videoId: id,
+
+    playerVars: {
+      autoplay: 1,
+      mute: 1,
+      playsinline: 1
+    }
+  });
 }
 
-// 🔗 extract ID
+// ▶ PLAY ALL
+function playAll() {
+
+  Object.values(players).forEach(player => {
+
+    if (player.playVideo) {
+      player.playVideo();
+    }
+
+  });
+}
+
+// ⏸ PAUSE ALL
+function pauseAll() {
+
+  Object.values(players).forEach(player => {
+
+    if (player.pauseVideo) {
+      player.pauseVideo();
+    }
+
+  });
+}
+
+// 🔗 EXTRACT YOUTUBE ID
 function getId(url) {
+
   let r = /(?:youtube\.com.*v=|youtu\.be\/|live\/)([^&#]+)/;
+
   let m = url.match(r);
+
   return m ? m[1] : null;
 }
 </script>
