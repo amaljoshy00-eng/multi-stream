@@ -69,7 +69,6 @@
       min-height:220px;
     }
 
-    /* 🔥 PLAYER */
     .player{
       width:100%;
       height:100%;
@@ -195,11 +194,21 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 
+// 🔥 YOUTUBE API READY
+let apiReady = false;
+
+function onYouTubeIframeAPIReady() {
+
+  apiReady = true;
+
+}
+
+
 // 🔥 STORE PLAYERS
 let players = {};
 
 
-// 👤 REAL ONLINE USERS
+// 👤 REAL ONLINE TRACKING
 const userId = Math.random().toString(36).substring(2);
 
 const userRef = db.ref("users/" + userId);
@@ -231,9 +240,22 @@ db.ref("streams").on("value", snap => {
 
   const grid = document.getElementById("grid");
 
-  grid.innerHTML = "";
+
+  // 🔥 DESTROY OLD PLAYERS
+  Object.values(players).forEach(player => {
+
+    if(player.destroy){
+
+      player.destroy();
+
+    }
+
+  });
 
   players = {};
+
+  grid.innerHTML = "";
+
 
   snap.forEach(child => {
 
@@ -261,7 +283,7 @@ function addStream() {
 
   db.ref("streams").once("value", snap => {
 
-    // 🔥 MAX LIMIT
+    // 🔥 LIMIT
     if (snap.numChildren() >= 9) {
 
       alert("Maximum 9 streams allowed");
@@ -302,6 +324,18 @@ function addStream() {
 
 // 🎬 CREATE PLAYER
 function createPlayer(id, key) {
+
+  if (!apiReady) {
+
+    setTimeout(() => {
+
+      createPlayer(id, key);
+
+    }, 500);
+
+    return;
+
+  }
 
   const grid = document.getElementById("grid");
 
@@ -357,7 +391,13 @@ function createPlayer(id, key) {
 
       mute: 1,
 
+      controls: 1,
+
       playsinline: 1,
+
+      enablejsapi: 1,
+
+      origin: window.location.origin,
 
       rel: 0
 
@@ -381,13 +421,26 @@ function createPlayer(id, key) {
 // ▶ PLAY ALL
 function playAll() {
 
-  Object.values(players).forEach(player => {
+  Object.keys(players).forEach(key => {
 
-    try{
+    let player = players[key];
 
-      player.playVideo();
+    if (
+      player &&
+      typeof player.playVideo === "function"
+    ) {
 
-    }catch(e){}
+      try {
+
+        player.playVideo();
+
+      } catch(err) {
+
+        console.log(err);
+
+      }
+
+    }
 
   });
 
@@ -397,24 +450,37 @@ function playAll() {
 // ⏸ PAUSE ALL
 function pauseAll() {
 
-  Object.values(players).forEach(player => {
+  Object.keys(players).forEach(key => {
 
-    try{
+    let player = players[key];
 
-      player.pauseVideo();
+    if (
+      player &&
+      typeof player.pauseVideo === "function"
+    ) {
 
-    }catch(e){}
+      try {
+
+        player.pauseVideo();
+
+      } catch(err) {
+
+        console.log(err);
+
+      }
+
+    }
 
   });
 
 }
 
 
-// 🔗 GET YOUTUBE ID
+// 🔗 BETTER YOUTUBE ID EXTRACTION
 function getId(url) {
 
   let r =
-    /(?:youtube\.com.*v=|youtu\.be\/|live\/)([^&#]+)/;
+    /(?:youtube\.com\/(?:watch\?v=|shorts\/|live\/|embed\/)|youtu\.be\/)([^?&#]+)/;
 
   let m = url.match(r);
 
