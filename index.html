@@ -77,9 +77,8 @@
     /* 🔥 GRID SELECTOR */
     .grid-selector{
       display:flex;
-      justify-content:center;
-      gap:10px;
-      flex-wrap:wrap;
+      flex-direction:column;
+      align-items:center;
       padding-bottom:10px;
     }
 
@@ -90,6 +89,18 @@
       padding:8px 14px;
       border-radius:6px;
       font-weight:bold;
+    }
+
+    .grid-menu{
+      display:none;
+      margin-top:10px;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+
+    .grid-menu button{
+      background:#444;
     }
 
     /* 🔥 GRID */
@@ -229,13 +240,29 @@
 <!-- 🔥 GRID SELECTOR -->
 <div class="grid-selector">
 
-  <button onclick="setGrid(1)">1 Column</button>
+  <button onclick="toggleGridMenu()">
+    🟦 Grid
+  </button>
 
-  <button onclick="setGrid(2)">2 Column</button>
+  <div id="gridMenu" class="grid-menu">
 
-  <button onclick="setGrid(3)">3 Column</button>
+    <button onclick="setGridMode(1)">
+      1×1
+    </button>
 
-  <button onclick="enableAutoGrid()">Auto Grid</button>
+    <button onclick="setGridMode(4)">
+      2×2
+    </button>
+
+    <button onclick="setGridMode(9)">
+      3×3
+    </button>
+
+    <button onclick="enableAutoGrid()">
+      Auto
+    </button>
+
+  </div>
 
 </div>
 
@@ -293,6 +320,8 @@ let players = {};
 
 // 🎛 GRID MODE
 let manualGridEnabled = false;
+
+let maxVisibleStreams = 9;
 
 
 // 👤 ONLINE USERS
@@ -352,6 +381,8 @@ db.ref("streams").on("value", snap => {
     createPlayer(child.val(), child.key);
 
   });
+
+  applyVisibility();
 
 });
 
@@ -699,27 +730,95 @@ function updateGrid(count){
 }
 
 
-// 🎛 MANUAL GRID
-function setGrid(cols){
+// 🎛 GRID MENU
+function toggleGridMenu(){
 
-  manualGridEnabled = true;
+  const menu =
+    document.getElementById("gridMenu");
 
-  const grid = document.getElementById("grid");
+  if(menu.style.display === "flex"){
 
-  grid.style.gridTemplateColumns =
-    `repeat(${cols},1fr)`;
+    menu.style.display = "none";
+
+  }else{
+
+    menu.style.display = "flex";
+
+  }
 
 }
 
 
-// 🔄 ENABLE AUTO GRID
+// 🎛 GRID MODE
+function setGridMode(limit){
+
+  manualGridEnabled = true;
+
+  maxVisibleStreams = limit;
+
+  const grid =
+    document.getElementById("grid");
+
+  if(limit === 1){
+
+    grid.style.gridTemplateColumns = "1fr";
+
+  }
+
+  else if(limit === 4){
+
+    grid.style.gridTemplateColumns =
+      "repeat(2,1fr)";
+
+  }
+
+  else{
+
+    grid.style.gridTemplateColumns =
+      "repeat(3,1fr)";
+
+  }
+
+  applyVisibility();
+
+}
+
+
+// 🔄 AUTO GRID
 function enableAutoGrid(){
 
   manualGridEnabled = false;
 
+  maxVisibleStreams = 9;
+
   updateGrid(
-    document.getElementById("grid").children.length
+    document.querySelectorAll(".card").length
   );
+
+  applyVisibility();
+
+}
+
+
+// 👁 APPLY VISIBILITY
+function applyVisibility(){
+
+  const cards =
+    document.querySelectorAll(".card");
+
+  cards.forEach((card,index) => {
+
+    if(index < maxVisibleStreams){
+
+      card.style.display = "block";
+
+    }else{
+
+      card.style.display = "none";
+
+    }
+
+  });
 
 }
 
